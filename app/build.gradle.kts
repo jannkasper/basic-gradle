@@ -181,3 +181,11 @@ tasks.register<Copy>("secondCopy") {
     include("**/*.txt", "**/*.xml", "**/*.properties")
 }
 
+// Example 10. Task class with @Inject constructor
+abstract class CustomTask @Inject constructor(
+    private val message: String,
+    private val number: Int
+) : DefaultTask()
+
+// Example 11. Registering a task with constructor arguments using TaskContainer
+tasks.register<CustomTask>("myTask", "hello", 42)
