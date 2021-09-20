@@ -152,7 +152,7 @@ tasks.register("test1") {
 // Example 5. Accessing tasks by path
 // Run: gradle -q hello
 println(tasks.getByPath("hello").path)
-//println(tasks.getByPath("project-a:hello").path)
+println(tasks.getByPath(":project-a:hello").path)
 
 // Example 6. Registering a copy task
 tasks.register<Copy>("myCopy")
@@ -189,3 +189,66 @@ abstract class CustomTask @Inject constructor(
 
 // Example 11. Registering a task with constructor arguments using TaskContainer
 tasks.register<CustomTask>("myTask", "hello", 42)
+
+// Example 12. Adding dependency on task from another project
+// Run: gradle -q taskX
+project(":project-a") {
+    tasks.register("taskX") {
+        dependsOn(":project-b:taskY")
+        doLast {
+            println("taskX")
+        }
+    }
+}
+
+project(":project-b") {
+    tasks.register("taskY") {
+        doLast {
+            println("taskY")
+        }
+    }
+}
+
+// Example 13. Adding dependency using task provider object
+val taskX by tasks.registering {
+    doLast {
+        println("taskX")
+    }
+}
+
+val taskY by tasks.registering {
+    doLast {
+        println("taskY")
+    }
+}
+
+taskX {
+    dependsOn(taskY)
+}
+
+// Example 14. Adding dependency using a lazy block
+// Run: gradle -q taskX
+// Using a Gradle Provider
+taskX {
+    dependsOn(provider {
+        tasks.filter { task -> task.name.startsWith("lib") }
+    })
+}
+
+tasks.register("lib1") {
+    doLast {
+        println("lib1")
+    }
+}
+
+tasks.register("lib2") {
+    doLast {
+        println("lib2")
+    }
+}
+
+tasks.register("notALib") {
+    doLast {
+        println("notALib")
+    }
+}
