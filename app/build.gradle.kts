@@ -309,3 +309,11 @@ val taskG by tasks.registering {
 taskE { dependsOn(taskF) }
 taskF { dependsOn(taskG) }
 taskG { shouldRunAfter(taskE) }
+
+// Example 19. Adding a description to a task
+tasks.register<Copy>("desCopy") {
+    description = "Copies the resource directory to the target directory."
+    from("resources")
+    into("target")
+    include("**/*.txt", "**/*.xml", "**/*.properties")
+}
