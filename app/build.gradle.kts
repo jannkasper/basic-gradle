@@ -252,3 +252,60 @@ tasks.register("notALib") {
         println("notALib")
     }
 }
+
+// Example 15. Adding a 'must run after' task ordering
+// Run: gradle -q taskB taskA
+val taskA by tasks.registering {
+    doLast {
+        println("taskA")
+    }
+}
+val taskB by tasks.registering {
+    doLast {
+        println("taskB")
+    }
+}
+taskB {
+    mustRunAfter(taskA)
+}
+
+// Example 16. Adding a 'should run after' task ordering
+// Run: gradle -q taskD taskC
+val taskC by tasks.registering {
+    doLast {
+        println("taskC")
+    }
+}
+val taskD by tasks.registering {
+    doLast {
+        println("taskD")
+    }
+}
+taskD {
+    shouldRunAfter(taskC)
+}
+
+// Example 17. Task ordering does not imply task execution
+// Run:  gradle -q taskB
+// Run:  gradle -q taskD
+
+// Example 18. A 'should run after' task ordering is ignored if it introduces an ordering cycle
+// Run: gradle -q taskE
+val taskE by tasks.registering {
+    doLast {
+        println("taskE")
+    }
+}
+val taskF by tasks.registering {
+    doLast {
+        println("taskF")
+    }
+}
+val taskG by tasks.registering {
+    doLast {
+        println("taskG")
+    }
+}
+taskE { dependsOn(taskF) }
+taskF { dependsOn(taskG) }
+taskG { shouldRunAfter(taskE) }
