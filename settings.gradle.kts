@@ -9,3 +9,5 @@
 
 rootProject.name = "basic-gradle"
 include("app")
+include("project-a")
+include("project-b")
