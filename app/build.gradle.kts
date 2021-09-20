@@ -38,13 +38,6 @@ tasks.test {
 // Run: gradle
 defaultTasks("hello")
 
-// Run: gradle hello
-tasks.register("hello") {
-    doLast {
-        println("Hello world!")
-    }
-}
-
 // Run: gradle upper
 tasks.register("upper") {
     doLast {
@@ -113,3 +106,46 @@ tasks.register("encode") {
         println(String(encodedString))
     }
 }
+
+// Example 1. Defining tasks using strings for task names
+tasks.register("hello") {
+    doLast {
+        println("hello")
+    }
+}
+
+tasks.register<Copy>("copy") {
+    from(file("srcDir"))
+    into(buildDir)
+}
+
+// Example 2. Assigning tasks to variables with DSL specific syntax
+val hello1 by tasks.registering {
+    doLast {
+        println("hello")
+    }
+}
+
+val copy1 by tasks.registering(Copy::class) {
+    from(file("srcDir"))
+    into(buildDir)
+}
+
+// Example 3. Accessing tasks via tasks collection
+println(tasks.named("hello").get().name) // or just 'tasks.hello' if the task was added by a plugin
+
+println(tasks.named<Copy>("copy").get().destinationDir)
+
+// Example 4. Accessing tasks by their type
+tasks.withType<Tar>().configureEach {
+    enabled = false
+}
+
+tasks.register("test1") {
+    dependsOn(tasks.withType<Copy>())
+}
+
+// Example 5. Accessing tasks by path
+// Run: gradle -q hello
+println(tasks.getByPath("hello").path)
+//println(tasks.getByPath("project-a:hello").path)
