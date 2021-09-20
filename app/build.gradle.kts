@@ -153,3 +153,31 @@ tasks.register("test1") {
 // Run: gradle -q hello
 println(tasks.getByPath("hello").path)
 //println(tasks.getByPath("project-a:hello").path)
+
+// Example 6. Registering a copy task
+tasks.register<Copy>("myCopy")
+
+// Example 7. Configuring a task
+tasks.named<Copy>("myCopy") {
+    from("resources")
+    into("target")
+    include("**/*.txt", "**/*.xml", "**/*.properties")
+}
+
+// Example 8. Retrieve a task reference and use it to configuring the task
+val myCopy by tasks.existing(Copy::class) {
+    from("resources")
+    into("target")
+}
+
+myCopy {
+    include("**/*.txt", "**/*.xml", "**/*.properties")
+}
+
+// Example 9. Defining a task with a configuration block
+tasks.register<Copy>("secondCopy") {
+    from("resources")
+    into("target")
+    include("**/*.txt", "**/*.xml", "**/*.properties")
+}
+
