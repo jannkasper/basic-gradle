@@ -6,6 +6,7 @@
  * User Manual available at https://docs.gradle.org/7.2/userguide/building_java_projects.html
  */
 import org.apache.commons.codec.binary.Base64
+import java.time.Duration
 
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
@@ -316,4 +317,59 @@ tasks.register<Copy>("desCopy") {
     from("resources")
     into("target")
     include("**/*.txt", "**/*.xml", "**/*.properties")
+}
+
+// Example 20. Skipping a task using a predicate
+// Run: gradle secondHello -PskipHello
+val secondHello by tasks.registering {
+    doLast {
+        println("second hello world")
+    }
+}
+
+secondHello {
+    onlyIf { !project.hasProperty("skipHello") }
+}
+
+// Example 21. Skipping tasks with StopExecutionException
+// Run: gradle -q thirdTask
+val compile by tasks.registering {
+    doLast {
+        println("We are doing the compile.")
+    }
+}
+
+compile {
+    doFirst {
+        // Here you would put arbitrary conditions in real life.
+        if (true) {
+            throw StopExecutionException()
+        }
+    }
+}
+tasks.register("thirdTask") {
+    dependsOn(compile)
+    doLast {
+        println("I am not affected")
+    }
+}
+
+// Example 22. Enabling and disabling tasks
+// Run: gradle disableMe
+val disableMe by tasks.registering {
+    doLast {
+        println("This should not be printed if the task is disabled.")
+    }
+}
+
+disableMe {
+    enabled = false
+}
+
+// Example 23. Specifying task timeouts
+tasks.register("hangingTask") {
+    doLast {
+        Thread.sleep(100000)
+    }
+    timeout.set(Duration.ofMillis(500))
 }
