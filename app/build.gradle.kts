@@ -5,6 +5,7 @@
  * For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle
  * User Manual available at https://docs.gradle.org/7.2/userguide/building_java_projects.html
  */
+import org.apache.commons.codec.binary.Base64
 
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
@@ -32,4 +33,83 @@ application {
 tasks.test {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+// Run: gradle
+defaultTasks("hello")
+
+// Run: gradle hello
+tasks.register("hello") {
+    doLast {
+        println("Hello world!")
+    }
+}
+
+// Run: gradle upper
+tasks.register("upper") {
+    doLast {
+        val someString = "mY_nAmE"
+        println("Original: $someString")
+        println("Upper case: ${someString.toUpperCase()}")
+    }
+}
+
+// Run: gradle count
+tasks.register("count") {
+    doLast {
+        repeat(4) { print("$it ") }
+    }
+}
+
+// Run: gradle intro
+tasks.register("intro") {
+    dependsOn("hello")
+    doLast {
+        println("I'm Gradle")
+    }
+}
+
+// Run: gradle task1
+repeat(4) { counter ->
+    tasks.register("task$counter") {
+        doLast {
+            println("I'm task number $counter")
+        }
+    }
+}
+
+// Run: gradle task0
+tasks.named("task0") { dependsOn("task2", "task3") }
+
+// Run: gradle loadfile
+tasks.register("loadfile") {
+    doLast {
+        val files = file("../.").listFiles().sorted()
+        files.forEach { file ->
+            if (file.isFile) {
+                ant.withGroovyBuilder {
+                    "loadfile"("srcFile" to file, "property" to file.name)
+                }
+                println(" *** ${file.name} ***")
+                println("${ant.properties[file.name]}")
+            }
+        }
+    }
+}
+
+// Run: gradle encode
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        "classpath"(group = "commons-codec", name = "commons-codec", version = "1.2")
+    }
+}
+
+tasks.register("encode") {
+    doLast {
+        val encodedString = Base64().encode("hello world\n".toByteArray())
+        println(String(encodedString))
+    }
 }
