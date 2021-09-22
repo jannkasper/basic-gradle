@@ -392,3 +392,20 @@ tasks.addRule("Pattern: ping<ID>") {
 tasks.register("groupPing") {
     dependsOn("pingServer1", "pingServer2")
 }
+
+// Example 47. Adding a task finalizer
+// On the other hand, finalizer tasks are not executed if the finalized task didn’t do any work,
+// for example if it is considered up to date or if a dependent task fails.
+// Run: gradle -q taskI
+val taskI by tasks.registering {
+    doLast {
+        println("taskI")
+    }
+}
+val taskJ by tasks.registering {
+    doLast {
+        println("taskJ")
+    }
+}
+
+taskI { finalizedBy(taskJ) }
