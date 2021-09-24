@@ -8,6 +8,6 @@
  */
 
 rootProject.name = "basic-gradle"
-include("app")
+//include("app")
 include("project-a")
-include("project-b")
+//include("project-b")

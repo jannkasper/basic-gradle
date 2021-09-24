@@ -6,6 +6,8 @@
  * User Manual available at https://docs.gradle.org/7.2/userguide/building_java_projects.html
  */
 
+import java.text.FieldPosition
+
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
@@ -38,5 +40,58 @@ tasks.test {
 tasks.register("hello") {
     doLast {
         println("hello")
+    }
+}
+
+// Example 1. Accessing property of the Project object
+// Run: gradle -q check
+println(name)
+println(project.name)
+
+// Example 2. Using local variables
+val dest = "dest"
+
+tasks.register<Copy>("copy") {
+    from("source")
+    into(dest)
+}
+
+// Example 3. Using extra properties
+// Run: gradle -q printProperties
+val springVersion by extra("3.1.0.RELEASE")
+val emailNotification by extra { "build@master.org" }
+
+sourceSets.all { extra["purpose"] = null }
+
+sourceSets {
+    main {
+        extra["purpose"] = "production"
+    }
+    test {
+        extra["purpose"] = "test"
+    }
+    create("plugin") {
+        extra["purpose"] = "production"
+    }
+}
+
+tasks.register("printProperties") {
+    doLast {
+        println(springVersion)
+        println(emailNotification)
+        sourceSets.matching { it.extra["purpose"] == "production" }.forEach { println(it.name) }
+    }
+}
+
+// Example 4. Configuring arbitrary objects
+// Run: gradle -q configure
+tasks.register("configure") {
+    doLast {
+        val pos = FieldPosition(10).apply {
+            beginIndex = 1
+            endIndex = 5
+        }
+        println(pos.beginIndex)
+        println(pos.endIndex)
     }
 }
