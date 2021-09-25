@@ -6,6 +6,8 @@
  * User Manual available at https://docs.gradle.org/7.2/userguide/building_java_projects.html
  */
 
+import java.nio.file.Paths
+
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
@@ -39,4 +41,224 @@ tasks.register("hello") {
     doLast {
         println("hello")
     }
+}
+
+// Example 1. How to copy a single file
+tasks.register<Copy>("copyReport") {
+    from(layout.buildDirectory.dir("../source"))
+    into(layout.buildDirectory.dir("../destination"))
+    println(layout.buildDirectory)
+}
+
+// Example 2. Using implicit string paths
+tasks.register<Copy>("copyReport2") {
+    from("$buildDir/../source/file.txt")
+    into("$buildDir/../destination")
+}
+
+// Example 4. Using multiple arguments with from()
+tasks.register<Copy>("copyReportsForArchiving") {
+    from(layout.buildDirectory.dir("../source/file.txt"), layout.buildDirectory.dir("../source/file2.txt"))
+    into(layout.buildDirectory.dir("../destination"))
+}
+
+// Example 5. Using a flat filter
+tasks.register<Copy>("copyPdfReportsForArchiving") {
+    from(layout.buildDirectory.dir("reports"))
+    include("*.pdf")
+    into(layout.buildDirectory.dir("toArchive"))
+}
+
+// Example 6. Using a deep filter
+tasks.register<Copy>("copyAllPdfReportsForArchiving") {
+    from(layout.buildDirectory.dir("reports"))
+    include("**/*.pdf")
+    into(layout.buildDirectory.dir("toArchive"))
+}
+
+// Example 14. Manually creating a directory
+tasks.register("ensureDirectory") {
+    doLast {
+        mkdir("images")
+    }
+}
+
+// Example 15. Moving a directory using the Ant task
+tasks.register("moveReports") {
+    doLast {
+        ant.withGroovyBuilder {
+            "move"("file" to "${buildDir}/reports", "todir" to "${buildDir}/toArchive")
+        }
+    }
+}
+
+// Example 16. Renaming files as they are copied
+tasks.register<Copy>("copyFromStaging") {
+    from("src/main/webapp")
+    into(layout.buildDirectory.dir("explodedWar"))
+
+    rename("(.+)-staging(.+)", "$1$2")
+}
+
+// Example 18. Deleting a directory
+tasks.register<Delete>("myClean") {
+    delete(buildDir)
+}
+
+// Example 19. Deleting files matching a specific pattern
+tasks.register<Delete>("cleanTempFiles") {
+    delete(fileTree("src").matching {
+        include("**/*.tmp")
+    })
+}
+
+// Example 21. Locating files
+// Using a relative path
+var configFile = file("src/config.xml")
+
+// Using an absolute path
+configFile = file(configFile.absolutePath)
+
+// Using a File object with a relative path
+configFile = file(File("src/config.xml"))
+
+// Using a java.nio.file.Path object with a relative path
+configFile = file(Paths.get("src", "config.xml"))
+
+// Using an absolute java.nio.file.Path object
+configFile = file(Paths.get(System.getProperty("user.home")).resolve("global-config.xml"))
+
+// Example 22. Creating a path relative to a parent project
+val configFile1 = file("$rootDir/shared/config.xml")
+
+// Example 23. Creating a file collection
+val collection: FileCollection = layout.files(
+        "src/file1.txt",
+        File("src/file2.txt"),
+        listOf("src/file3.csv", "src/file4.csv"),
+        Paths.get("src", "file5.txt")
+)
+
+// Example 24. Lazy implementing a file collection
+tasks.register("list") {
+    doLast {
+        var srcDir: File? = null
+
+        val collection = layout.files({
+            srcDir?.listFiles()
+        })
+
+        srcDir = file("src")
+        println("Contents of ${srcDir.name}")
+        collection.map { relativePath(it) }.sorted().forEach { println(it) }
+
+        srcDir = file("src2")
+        println("Contents of ${srcDir.name}")
+        collection.map { relativePath(it) }.sorted().forEach { println(it) }
+    }
+}
+
+// Example 25. Using a file collection
+// Iterate over the files in the collection
+tasks.register("list2") {
+    doLast {
+        collection.forEach { file: File ->
+            println(file.name)
+        }
+
+        // Convert the collection to various types
+        val set: Set<File> = collection.files
+        val list: List<File> = collection.toList()
+        val path: String = collection.asPath
+//        val file: File = collection.singleFile
+
+        // Add and subtract collections
+        val union = collection + layout.files("src/file2.txt")
+        val difference = collection - layout.files("src/file2.txt")
+    }
+}
+
+// Example 26. Filtering a file collection
+tasks.register("filterFile") {
+    val textFiles: FileCollection = collection.filter { f: File ->
+        f.name.endsWith(".txt")
+    }
+}
+
+// Example 27. Creating a file tree
+tasks.register("fileTree") {
+    // Create a file tree with a base directory
+    var tree: ConfigurableFileTree = fileTree("src/main")
+
+    // Add include and exclude patterns to the tree
+    tree.include("**/*.java")
+    tree.exclude("**/Abstract*")
+
+    // Create a tree using closure
+    tree = fileTree("src") {
+        include("**/*.java")
+    }
+
+    // Create a tree using a map
+    tree = fileTree("dir" to "src", "include" to "**/*.java")
+    tree = fileTree("dir" to "src", "includes" to listOf("**/*.java", "**/*.xml"))
+    tree = fileTree("dir" to "src", "include" to "**/*.java", "exclude" to "**/*test*/**")
+}
+
+// Example 29. Using a file tree
+tasks.register("fileTree2") {
+    // Create a file tree with a base directory
+    var tree: ConfigurableFileTree = fileTree("src/main")
+
+    // Iterate over the contents of a tree
+    tree.forEach{ file: File ->
+        println(file)
+    }
+
+    // Filter a tree
+    val filtered: FileTree = tree.matching {
+        include("org/gradle/api/**")
+    }
+
+    // Add trees together
+    val sum: FileTree = tree + fileTree("src/test")
+
+    // Visit the elements of the tree
+    tree.visit {
+        println("${this.relativePath} => ${this.file}")
+    }
+}
+
+// Example 30. Using an archive as a file tree
+tasks.register("treeZip") {
+    // Create a ZIP file tree using path
+    val zip: FileTree = zipTree("someFile.zip")
+
+    // Create a TAR file tree using path
+    val tar: FileTree = tarTree("someFile.tar")
+
+    // tar tree attempts to guess the compression based on the file extension
+    // however if you must specify the compression explicitly you can:
+    val someTar: FileTree = tarTree(resources.gzip("someTar.ext"))
+}
+
+// Example 31. Specifying a set of files
+tasks.register<JavaCompile>("compile") {
+    // Use a File object to specify the source directory
+    source = fileTree(file("src/main/java"))
+
+    // Use a String path to specify the source directory
+    source = fileTree("src/main/java")
+
+    // Use a collection to specify multiple source directories
+    source = fileTree(listOf("src/main/java", "../shared/java"))
+
+    // Use a FileCollection (or FileTree in this case) to specify the source files
+    source = fileTree("src/main/java").matching { include("org/gradle/api/**") }
+
+    // Using a closure to specify the source files.
+    setSource({
+        // Use the contents of each zip file in the src dir
+        file("src").listFiles().filter { it.name.endsWith(".zip") }.map { zipTree(it) }
+    })
 }
