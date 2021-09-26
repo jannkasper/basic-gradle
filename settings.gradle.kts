@@ -8,6 +8,31 @@
  */
 
 rootProject.name = "basic-gradle"
-include("app")
+//include("app")
 include("project-a")
 include("project-b")
+
+// Example 1. Single project build
+println("This is executed during the initialization phase.")
+
+// Example 3. Notifications
+gradle.afterProject {
+    if (state.failure != null) {
+        println("Evaluation of $project FAILED")
+    } else {
+        println("Evaluation of $project succeeded")
+    }
+}
+
+// Example 5. Logging of start and end of each task execution
+gradle.taskGraph.beforeTask {
+    println("executing $this ...")
+}
+
+gradle.taskGraph.afterTask {
+    if (state.failure != null) {
+        println("FAILED")
+    } else {
+        println("done")
+    }
+}

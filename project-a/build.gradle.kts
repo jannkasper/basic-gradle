@@ -40,3 +40,9 @@ tasks.register("hello") {
         println("hello")
     }
 }
+
+tasks.register("testOne") {
+    doLast {
+        println("project-b: This is executed during the execution phase.")
+    }
+}

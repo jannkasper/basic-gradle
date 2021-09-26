@@ -28,8 +28,25 @@ application {
     // Define the main class for the application.
     mainClass.set("basic.gradle.App")
 }
+// Run: gradle test testBoth
+println("This is executed during the configuration phase.")
 
-tasks.test {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
+tasks.register("configured") {
+    println("This is also executed during the configuration phase, because :configured is used in the build.")
+}
+
+tasks.register("testOne") {
+    doLast {
+        println("project-b: This is executed during the execution phase.")
+    }
+}
+
+tasks.register("testBoth") {
+    doFirst {
+        println("This is executed first during the execution phase.")
+    }
+    doLast {
+        println("This is executed last during the execution phase.")
+    }
+    println("This is executed during the configuration phase as well, because :testBoth is used in the build.")
 }
