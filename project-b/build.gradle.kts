@@ -5,6 +5,8 @@
  * For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle
  * User Manual available at https://docs.gradle.org/7.2/userguide/building_java_projects.html
  */
+import org.slf4j.LoggerFactory
+
 
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
@@ -33,3 +35,26 @@ tasks.test {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
+
+// Example 1. Using stdout to write log messages
+println("A message which is logged at QUIET level")
+
+// Example 2. Writing your own log messages
+logger.quiet("An info log message which is always logged.")
+logger.error("An error log message.")
+logger.warn("A warning log message.")
+logger.lifecycle("A lifecycle info log message.")
+logger.info("An info log message.")
+logger.debug("A debug log message.")
+logger.trace("A trace log message.") // Gradle never logs TRACE level logs
+
+// Example 3. Writing a log message with placeholder
+logger.info("A {} log message", "info")
+
+// Example 4. Using SLF4J to write log messages
+val slf4jLogger = LoggerFactory.getLogger("some-logger")
+slf4jLogger.info("An info log message logged using SLF4j")
+
+// Example 5. Configuring standard output capture
+logging.captureStandardOutput(LogLevel.INFO)
+println("A message which is logged at INFO level")
